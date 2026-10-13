@@ -15,6 +15,7 @@ data("ny_noaa")
 ny_noaa
 ```
 We want to know the size and the structure of the data.
+## Overview of the data
 ```{r}
 dim(ny_noaa)
 glimpse(ny_noaa)
@@ -33,5 +34,32 @@ ny_noaa |>
   )
 ```
 A short description based on the data:
-The `ny_noaa` dataset contains daily weather observations from `r scales::comma(nrow(ny_noaa))` records across `r n_distinct(ny_noaa$id)` weather stations in New York State. It has `r ncol(ny_noaa)` variables, including station ID (`id`), observation date (`date`), precipitation (`prcp`), snowfall (`snow`), snow depth (`snwd`), maximum temperature (`tmax`), and minimum temperature (`tmin`). The observations span from 1981 to 2010. Missing data are an important issue. Precipitation has 145,838 missing values, snowfall has 381,221, and snow depth has 591,786. The temperature variables are stored as character variables, and their missing values should also be examined. Therefore, data cleaning and handling missing observations are necessary before further analysis.
+The `ny_noaa` dataset contains daily weather observations from `r scales::comma(nrow(ny_noaa))` records across `r n_distinct(ny_noaa$id)` weather stations in New York State. It has `r ncol(ny_noaa)` variables, including station ID (`id`), observation date (`date`), precipitation (`prcp`), snowfall (`snow`), snow depth (`snwd`), maximum temperature (`tmax`), and minimum temperature (`tmin`). The observations span from 1981 to 2010. Missing data are an important issue. Precipitation has 145,838 missing values, snowfall has 381,221, and snow depth has 591,786. The temperature variables (tmax and tmin) are stored as character variables, and their missing values should also be examined.
+
+## Data Cleaning
+```{r}
+noaa_df =
+  ny_noaa |>
+  janitor::clean_names() |>
+  mutate(
+    year = as.numeric(str_sub(date, 1, 4)),
+    month = as.numeric(str_sub(date, 6, 7)),
+    day = as.numeric(str_sub(date, 9, 10)),
+    tmax = as.numeric(tmax) / 10,
+    tmin = as.numeric(tmin) / 10,
+    prcp = as.numeric(prcp) / 10,
+    snow = as.numeric(snow),
+    snwd = as.numeric(snwd)
+  )
+```
+
+Snow falls
+```{r}
+noaa_df |>
+  count(snow, sort = TRUE) |>
+  slice_head(n = 10)
+```
+The most commonly observed snowfall value is expected to be 0 mm because snowfall does not occur on most observation days. 
+
+
 

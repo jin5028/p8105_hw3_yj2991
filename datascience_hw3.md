@@ -29,7 +29,8 @@ ny_noaa
     ## 10 US1NYAB0001 2007-11-10    NA    NA    NA <NA>  <NA> 
     ## # ℹ 2,595,166 more rows
 
-We want to know the size and the structure of the data.
+We want to know the size and the structure of the data. \## Overview of
+the data
 
 ``` r
 dim(ny_noaa)
@@ -100,6 +101,48 @@ stations in New York State. It has 7 variables, including station ID
 temperature (`tmin`). The observations span from 1981 to 2010. Missing
 data are an important issue. Precipitation has 145,838 missing values,
 snowfall has 381,221, and snow depth has 591,786. The temperature
-variables are stored as character variables, and their missing values
-should also be examined. Therefore, data cleaning and handling missing
-observations are necessary before further analysis.
+variables (tmax and tmin) are stored as character variables, and their
+missing values should also be examined.
+
+## Data Cleaning
+
+``` r
+noaa_df =
+  ny_noaa |>
+  janitor::clean_names() |>
+  mutate(
+    year = as.numeric(str_sub(date, 1, 4)),
+    month = as.numeric(str_sub(date, 6, 7)),
+    day = as.numeric(str_sub(date, 9, 10)),
+    tmax = as.numeric(tmax) / 10,
+    tmin = as.numeric(tmin) / 10,
+    prcp = as.numeric(prcp) / 10,
+    snow = as.numeric(snow),
+    snwd = as.numeric(snwd)
+  )
+```
+
+Snow falls
+
+``` r
+noaa_df |>
+  count(snow, sort = TRUE) |>
+  slice_head(n = 10)
+```
+
+    ## # A tibble: 10 × 2
+    ##     snow       n
+    ##    <dbl>   <int>
+    ##  1     0 2008508
+    ##  2    NA  381221
+    ##  3    25   31022
+    ##  4    13   23095
+    ##  5    51   18274
+    ##  6    76   10173
+    ##  7     8    9962
+    ##  8     5    9748
+    ##  9    38    9197
+    ## 10     3    8790
+
+The most commonly observed snowfall value is expected to be 0 mm because
+snowfall does not occur on most observation days.
