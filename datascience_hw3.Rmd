@@ -160,7 +160,7 @@ p_snow =
   )
 ```
 
-```{r}
+```{r, fig.width=14, fig.height=6}
 library(patchwork)
 p_temp + p_snow +
   plot_layout(widths = c(1, 1.5))
@@ -171,3 +171,95 @@ p_temp + p_snow +
 
 **Snowfall Distribution by Year:** The snowfall distributions appear similar across years, with multiple peaks around certain snowfall amounts. The distributions are spread across a wide range of snowfall amounts. Overall, there is no obvious change in the snowfall distribution over time.
 
+# Problem 2
+## Load, tidy, and merge the dataset
+```{r, message=FALSE}
+library(tidyverse)
+library(janitor)
+library(knitr)
+
+covar =
+  read_csv("data/nhanes_covar.csv", 
+    skip = 4,
+    col_names = TRUE,
+    na = c("", ".", "NA")) |>
+  clean_names()
+
+accel =
+  read_csv("data/nhanes_accel.csv", na = c("", ".", "NA"))|>
+  clean_names()
+
+covar_tidy <- covar |>
+  mutate(
+    sex = factor(sex, levels = c(1, 2), labels = c("Male", "Female")),
+    education = factor(
+      education, levels = c(1, 2, 3),
+      labels = c("Less than high school", "High school equivalent", "More than high school"))
+  ) |>
+  filter(age >= 21) |>
+  drop_na()         
+
+nhanes_wide <- inner_join(covar_tidy, accel, by = "seqn") |>
+  mutate(seqn = as.character(seqn))     
+
+nhanes_long <- nhanes_wide |>
+  pivot_longer(
+    cols = starts_with("min"),
+    names_to = "minute", names_prefix = "min", values_to = "mims") |>
+  mutate(minute = as.integer(minute))
+
+dim(nhanes_wide) 
+```
+
+```{r}
+nhanes_covar_clean =
+  nhanes_covar |>
+  filter(
+    age >= 21,
+    !is.na(age),
+    !is.na(sex),
+    !is.na(education)
+  ) |>
+  mutate(
+    sex = factor(
+      sex,
+      levels = c(1, 2),
+      labels = c("Male", "Female")
+    ),
+    education = factor(
+      education,
+      levels = c(1, 2, 3),
+      labels = c(
+        "Less than high school",
+        "High school equivalent",
+        "More than high school"
+      ),
+      ordered = TRUE
+    )
+  )
+```
+
+## Table for the number of men and women in each education category
+## Age distributions for men and women in each education category
+```{r}
+nhanes_wide |>
+  count(education, sex) |>
+  pivot_wider(names_from = sex, values_from = n, values_fill = 0) |>
+  kable(caption = "Number of men and women in each education category",
+        col.names = c("Education", "Men", "Women"))
+```
+
+```{r}
+nhanes_wide |>
+  ggplot(aes(x = sex, y = age, fill = sex)) +
+  geom_boxplot(alpha = 0.7) +
+  facet_wrap(~ education) +
+  labs(title = "Age distribution by sex and education",
+       x = "Sex", y = "Age (years)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+**Comments on table and visualization:**
+For the table, Men and women are almost evenly split in the "less than high school" group and in the "more than high school" group. The "high school equivalent" group has more men than women. The "more than high school" group is by far the largest, with 115 of the 228 participants, about half of the sample. The other two groups are small, so comparisons within them should be read with caution.
+For the age distribution, Median age is highest in the "less than high school" group and lowest in the "more than high school" group. So the more educated participants tend to be younger. Older cohorts in the US generally completed less schooling, so age and education are confounded. The sexes look similar in the first and third groups, with nearly identical medians and spreads.  In the "high school equivalent" group, Women are older there, and the women's middle 50% sits higher. There are only 23 women in that group, this gap could be partly due to chance. Across all groups the ages span roughly 21 to 80, so each group includes both young and old adults. The boxplots show the spread, but they don't show the sample sizes, so they should be read together with the table.
