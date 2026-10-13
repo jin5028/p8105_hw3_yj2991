@@ -61,5 +61,51 @@ noaa_df |>
 ```
 The most commonly observed snowfall value is expected to be 0 mm because snowfall does not occur on most observation days. 
 
+## Average max temperature in January and in July
+```{r, warning=FALSE}
+temp_df =
+  noaa_df |>
+  filter(month %in% c(1, 7)) |>
+  group_by(id, year, month) |>
+  summarise(
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    month = factor(
+      month,
+      levels = c(1, 7),
+      labels = c("January", "July")
+    )
+  )
 
+ggplot(
+  temp_df,
+  aes(
+    x = year,
+    y = mean_tmax,
+    group = id
+  )
+) +
+  geom_line(alpha = 0.15, color = "blue") +
+  facet_grid(. ~ month) +
+  labs(
+    title = "Average Maximum Temperature in January and July",
+    x = "Year",
+    y = "Average Maximum Temperature (°C)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 9),
+    strip.text = element_text(size = 11)
+  )
+```
+
+
+Summary of the plots:
+July has much higher average maximum temperatures (mostly around 25–30°C) than January (mostly around −5–5°C). There is variation among stations in both months, shown by the many overlapping lines. January temperatures appear more variable than July temperatures. There is no obvious long-term increasing or decreasing trend in either panel. Temperatures fluctuate from year to year.
+
+Potential outliers: A few stations show unusually low values. In July, some observations fall well below the main cluster, including one in the late 1980s. In January, a few observations fall below −10°C. 
 
