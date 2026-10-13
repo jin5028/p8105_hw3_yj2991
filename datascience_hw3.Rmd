@@ -1,0 +1,37 @@
+---
+title: "data science Homework 3"
+author: "Yiran Jin"
+date: "2026-10-13"
+output: github_document
+---
+
+# Problem 1
+```{r, message=FALSE, warning=FALSE}
+library(p8105.datasets)
+library(tidyverse)
+
+data("ny_noaa")
+
+ny_noaa
+```
+We want to know the size and the structure of the data.
+```{r}
+dim(ny_noaa)
+glimpse(ny_noaa)
+summary(ny_noaa)
+
+ny_noaa |>
+  summarise(
+    total_rows = n(),
+    total_stations = n_distinct(id),
+    missing_date = sum(is.na(date)),
+    missing_prcp = sum(is.na(prcp)),
+    missing_snow = sum(is.na(snow)),
+    missing_snwd = sum(is.na(snwd)),
+    missing_tmax = sum(is.na(tmax)),
+    missing_tmin = sum(is.na(tmin))
+  )
+```
+A short description based on the data:
+The `ny_noaa` dataset contains daily weather observations from `r scales::comma(nrow(ny_noaa))` records across `r n_distinct(ny_noaa$id)` weather stations in New York State. It has `r ncol(ny_noaa)` variables, including station ID (`id`), observation date (`date`), precipitation (`prcp`), snowfall (`snow`), snow depth (`snwd`), maximum temperature (`tmax`), and minimum temperature (`tmin`). The observations span from 1981 to 2010. Missing data are an important issue: precipitation has 145,838 missing values, snowfall has 381,221, and snow depth has 591,786. The temperature variables are stored as character variables, and their missing values should also be examined. Therefore, data cleaning and handling missing observations are necessary before further analysis.
+
