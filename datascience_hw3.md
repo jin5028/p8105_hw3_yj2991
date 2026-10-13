@@ -98,7 +98,7 @@ stations in New York State. It has 7 variables, including station ID
 (`id`), observation date (`date`), precipitation (`prcp`), snowfall
 (`snow`), snow depth (`snwd`), maximum temperature (`tmax`), and minimum
 temperature (`tmin`). The observations span from 1981 to 2010. Missing
-data are an important issue: precipitation has 145,838 missing values,
+data are an important issue. Precipitation has 145,838 missing values,
 snowfall has 381,221, and snow depth has 591,786. The temperature
 variables are stored as character variables, and their missing values
 should also be examined. Therefore, data cleaning and handling missing
