@@ -263,3 +263,22 @@ nhanes_wide |>
 **Comments on table and visualization:**
 For the table, Men and women are almost evenly split in the "less than high school" group and in the "more than high school" group. The "high school equivalent" group has more men than women. The "more than high school" group is by far the largest, with 115 of the 228 participants, about half of the sample. The other two groups are small, so comparisons within them should be read with caution.
 For the age distribution, Median age is highest in the "less than high school" group and lowest in the "more than high school" group. So the more educated participants tend to be younger. Older cohorts in the US generally completed less schooling, so age and education are confounded. The sexes look similar in the first and third groups, with nearly identical medians and spreads.  In the "high school equivalent" group, Women are older there, and the women's middle 50% sits higher. There are only 23 women in that group, this gap could be partly due to chance. Across all groups the ages span roughly 21 to 80, so each group includes both young and old adults. The boxplots show the spread, but they don't show the sample sizes, so they should be read together with the table.
+
+
+## Total Activity
+```{r}
+nhanes_wide <- nhanes_wide |>
+  mutate(total_activity = rowSums(across(starts_with("min"))))
+
+nhanes_wide |>
+  ggplot(aes(x = age, y = total_activity, color = sex)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(se = FALSE) +
+  facet_wrap(~ education) +
+  labs(title = "Total daily activity versus age",
+       x = "Age (years)", y = "Total MIMS over 24 hours", color = "Sex") +
+  theme_minimal()
+```
+**Total activity versus age：**
+Total activity falls with age in all three education groups, from roughly 14,000 to 18,000 MIMS in the twenties and thirties to about 9,000 to 10,000 by age 80. The decline is steepest and most consistent in the "less than high school" group. Men and women track each other closely. In the "high school equivalent" group, women are clearly more active than men until about age 60. The two sexes then converge at older ages. In the "more than high school" group, activity is fairly flat until about 60 and then declines. Women stay slightly above men at most ages. Overall, women are at or above men in some places, but the gap is small compared with the scatter between individuals. The smooth curves are wiggly in the smaller groups, so differences there should not be over-interpreted.
+
