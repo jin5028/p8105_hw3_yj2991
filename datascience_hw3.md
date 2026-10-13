@@ -93,16 +93,16 @@ ny_noaa |>
     ## 1    2595176            747            0       145838       381221       591786
     ## # ℹ 2 more variables: missing_tmax <int>, missing_tmin <int>
 
-A short description based on the data: The `ny_noaa` dataset contains
-daily weather observations from 2,595,176 records across 747 weather
-stations in New York State. It has 7 variables, including station ID
-(`id`), observation date (`date`), precipitation (`prcp`), snowfall
-(`snow`), snow depth (`snwd`), maximum temperature (`tmax`), and minimum
-temperature (`tmin`). The observations span from 1981 to 2010. Missing
-data are an important issue. Precipitation has 145,838 missing values,
-snowfall has 381,221, and snow depth has 591,786. The temperature
-variables (tmax and tmin) are stored as character variables, and their
-missing values should also be examined.
+**A short description based on the data:** The `ny_noaa` dataset
+contains daily weather observations from 2,595,176 records across 747
+weather stations in New York State. It has 7 variables, including
+station ID (`id`), observation date (`date`), precipitation (`prcp`),
+snowfall (`snow`), snow depth (`snwd`), maximum temperature (`tmax`),
+and minimum temperature (`tmin`). The observations span from 1981 to
+2010. Missing data are an important issue. Precipitation has 145,838
+missing values, snowfall has 381,221, and snow depth has 591,786. The
+temperature variables (tmax and tmin) are stored as character variables,
+and their missing values should also be examined.
 
 ## Data Cleaning
 
@@ -147,7 +147,7 @@ noaa_df |>
 The most commonly observed snowfall value is expected to be 0 mm because
 snowfall does not occur on most observation days.
 
-## average max temperature in January and in July
+## Average max temperature in January and in July
 
 ``` r
 temp_df =
@@ -190,18 +190,87 @@ ggplot(
   )
 ```
 
-    ## Warning: Removed 5932 rows containing missing values or values outside the scale range
-    ## (`geom_line()`).
-
 ![](datascience_hw3_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-Summary of the plots: July has much higher average maximum temperatures
-(mostly around 25–30°C) than January (mostly around −5–5°C). There is
-variation among stations in both months, shown by the many overlapping
-lines. January temperatures appear more variable than July temperatures.
-There is no obvious long-term increasing or decreasing trend in either
-panel. Temperatures fluctuate from year to year.
+**Summary of the plots:** July has much higher average maximum
+temperatures (mostly around 25–30°C) than January (mostly around
+−5–5°C). There is variation among stations in both months, shown by the
+many overlapping lines. January temperatures appear more variable than
+July temperatures. There is no obvious long-term increasing or
+decreasing trend in either panel. Temperatures fluctuate from year to
+year.
 
 Potential outliers: A few stations show unusually low values. In July,
 some observations fall well below the main cluster, including one in the
 late 1980s. In January, a few observations fall below −10°C.
+
+## tmax vs tmin for the full dataset
+
+``` r
+p_temp =
+  noaa_df |>
+  filter(!is.na(tmax), !is.na(tmin)) |>
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_bin2d(bins = 50) +
+  labs(
+    title = "Maximum vs. Minimum Temperature",
+    x = "Minimum Temperature (°C)",
+    y = "Maximum Temperature (°C)",
+    fill = "Count"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 8)
+  )
+```
+
+## Distribution of snowfall values greater than 0 and less than 100
+
+``` r
+p_snow =
+  noaa_df |>
+  filter(!is.na(snow), snow > 0, snow < 100) |>
+  ggplot(aes(x = factor(year), y = snow)) +
+  geom_violin(
+    fill = "lightblue",
+    color = "gray",
+    alpha = 0.8,
+    scale = "width",
+    width = 0.9,
+    trim = TRUE
+  ) +
+  scale_x_discrete(breaks = seq(1981, 2010, by = 2)) +
+  labs(
+    title = "Snowfall Distribution by Year",
+    x = "Year",
+    y = "Snowfall (mm)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title = element_text(size = 10),
+    axis.text.x = element_text(size = 8, angle = 45, hjust = 1)
+  )
+```
+
+``` r
+library(patchwork)
+p_temp + p_snow +
+  plot_layout(widths = c(1, 1.5))
+```
+
+![](datascience_hw3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+**Maximum vs. Minimum Temperature:** The plot shows a positive
+association between minimum and maximum temperatures. Days with higher
+minimum temperatures generally also have higher maximum temperatures.
+Most observations are concentrated in the central region, while a few
+extreme values appear to be potential outliers.
+
+**Snowfall Distribution by Year:** The snowfall distributions appear
+similar across years, with multiple peaks around certain snowfall
+amounts. The distributions are spread across a wide range of snowfall
+amounts. Overall, there is no obvious change in the snowfall
+distribution over time.
