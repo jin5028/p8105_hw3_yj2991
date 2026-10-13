@@ -213,7 +213,7 @@ dim(nhanes_wide)
 
 ```{r}
 nhanes_covar_clean =
-  nhanes_covar |>
+  covar |>
   filter(
     age >= 21,
     !is.na(age),
@@ -282,3 +282,19 @@ nhanes_wide |>
 **Total activity versus age：**
 Total activity falls with age in all three education groups, from roughly 14,000 to 18,000 MIMS in the twenties and thirties to about 9,000 to 10,000 by age 80. The decline is steepest and most consistent in the "less than high school" group. Men and women track each other closely. In the "high school equivalent" group, women are clearly more active than men until about age 60. The two sexes then converge at older ages. In the "more than high school" group, activity is fairly flat until about 60 and then declines. Women stay slightly above men at most ages. Overall, women are at or above men in some places, but the gap is small compared with the scatter between individuals. The smooth curves are wiggly in the smaller groups, so differences there should not be over-interpreted.
 
+
+## 24 hour time courses
+```{r}
+nhanes_long |>
+  ggplot(aes(x = minute / 60, y = mims, color = sex)) +
+  geom_line(aes(group = seqn), alpha = 0.05) +
+  geom_smooth(aes(group = sex), se = FALSE, linewidth = 1.2) +
+  facet_wrap(~ education, ncol = 3) +
+  scale_x_continuous(breaks = seq(0, 24, 4)) +
+  coord_cartesian(ylim = c(0, 75)) +
+  labs(title = "24-hour activity profiles by education and sex",
+       x = "Hour of day (0 = midnight)", y = "MIMS", color = "Sex") +
+  theme_minimal()
+```
+**24-hour activity profiles:** 
+All three panels share the same daily rhythm. Activity is lowest around 4 a.m. (near zero), rises from about 6 to 8 a.m., stays on roughly 12 to 15 MIMS through the day, and declines after about 8 p.m. toward midnight. Men and women are almost identical in the "less than high school" and "high school equivalent" groups. In the "more than high school" group, women are somewhat more active than men through the daytime and evening. The smooths describe the average pattern, and the individual lines show large variation between people. It has a few very high values that are most visible in the largest group. The education groups also differ in age, so age may account for some of the differences.
