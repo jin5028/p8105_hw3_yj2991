@@ -298,3 +298,41 @@ nhanes_long |>
 ```
 **24-hour activity profiles:** 
 All three panels share the same daily rhythm. Activity is lowest around 4 a.m. (near zero), rises from about 6 to 8 a.m., stays on roughly 12 to 15 MIMS through the day, and declines after about 8 p.m. toward midnight. Men and women are almost identical in the "less than high school" and "high school equivalent" groups. In the "more than high school" group, women are somewhat more active than men through the daytime and evening. The smooths describe the average pattern, and the individual lines show large variation between people. It has a few very high values that are most visible in the largest group. The education groups also differ in age, so age may account for some of the differences.
+
+# Problem 3
+## Clean the dataset
+```{r, message=FALSE}
+jan2020  <- read_csv("citibike/Jan_2020_Citi.csv") |>
+  mutate(year = "2020", month = "January")
+july2020 <- read_csv("citibike/July_2020_Citi.csv") |>
+  mutate(year = "2020", month = "July")
+jan2024  <- read_csv("citibike/Jan_2024_Citi.csv") |>
+  mutate(year = "2024", month = "January")
+july2024 <- read_csv("citibike/July_2024_Citi.csv") |>
+  mutate(year = "2024", month = "July")
+citi <- bind_rows(jan2020, july2020, jan2024, july2024) |>
+  clean_names() |>
+  mutate(
+    year  = factor(year),
+    month = factor(month, levels = c("January", "July")),
+    weekdays = factor(weekdays,
+      levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
+                 "Friday", "Saturday", "Sunday")),
+    member_casual = factor(member_casual,
+      levels = c("member", "casual"), labels = c("Member", "Casual")),
+    rideable_type = factor(rideable_type,
+      levels = c("classic_bike", "electric_bike"), labels = c("Classic", "Electric"))
+  )
+
+dim(citi)
+summary(citi$duration)
+colSums(is.na(citi))
+```
+
+```{r}
+glimpse(citi)
+```
+**Summary of the dataset:**
+The cleaned Citi Bike dataset has 99,485 rows and 9 variables. It combines four files that each hold a 1% sample of rides from January 2020, July 2020, January 2024, and July 2024. Each row is one ride, with a unique ride ID, the bike type, the day of the week, ride duration in minutes, start and end station names, and whether the rider is a member or casual. I added year and month and stored the categorical variables as factors, with weekdays ordered Monday to Sunday. Ride duration is right-skewed: the median is 9.8 minutes and the mean is 13.9, the middle 50% of rides last between 5.6 and 17.6 minutes, and the longest ride is 238.8 minutes, consistent with the 4-hour cap. The only missing values are in station names, 43 for start stations and 207 for end stations, which is a very small share of the data.
+
+## Total number of rides in each combination of year and month
