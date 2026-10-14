@@ -15,6 +15,7 @@ data("ny_noaa")
 ny_noaa
 ```
 We want to know the size and the structure of the data.
+
 ## Overview of the data
 ```{r}
 dim(ny_noaa)
@@ -240,7 +241,6 @@ nhanes_covar_clean =
 ```
 
 ## Table for the number of men and women in each education category
-## Age distributions for men and women in each education category
 ```{r}
 nhanes_wide |>
   count(education, sex) |>
@@ -248,7 +248,11 @@ nhanes_wide |>
   kable(caption = "Number of men and women in each education category",
         col.names = c("Education", "Men", "Women"))
 ```
+**Comments on table:**
+Men and women are almost evenly split in the "less than high school" group and in the "more than high school" group. The "high school equivalent" group has more men than women. The "more than high school" group is by far the largest, with 115 of the 228 participants, about half of the sample. The other two groups are small, so comparisons within them should be read with caution.
 
+
+## Age distributions for men and women in each education category
 ```{r}
 nhanes_wide |>
   ggplot(aes(x = sex, y = age, fill = sex)) +
@@ -260,9 +264,8 @@ nhanes_wide |>
   theme(legend.position = "none")
 ```
 
-**Comments on table and visualization:**
-For the table, Men and women are almost evenly split in the "less than high school" group and in the "more than high school" group. The "high school equivalent" group has more men than women. The "more than high school" group is by far the largest, with 115 of the 228 participants, about half of the sample. The other two groups are small, so comparisons within them should be read with caution.
-For the age distribution, Median age is highest in the "less than high school" group and lowest in the "more than high school" group. So the more educated participants tend to be younger. Older cohorts in the US generally completed less schooling, so age and education are confounded. The sexes look similar in the first and third groups, with nearly identical medians and spreads.  In the "high school equivalent" group, Women are older there, and the women's middle 50% sits higher. There are only 23 women in that group, this gap could be partly due to chance. Across all groups the ages span roughly 21 to 80, so each group includes both young and old adults. The boxplots show the spread, but they don't show the sample sizes, so they should be read together with the table.
+**Comments on visualization:**
+Median age is highest in the "less than high school" group and lowest in the "more than high school" group. So the more educated participants tend to be younger. Older cohorts in the US generally completed less schooling, so age and education are confounded. The sexes look similar in the first and third groups, with nearly identical medians and spreads.  In the "high school equivalent" group, Women are older, and the women's middle 50% sits higher. There are only 23 women in that group, this gap could be partly due to chance. Across all groups the ages span roughly 21 to 80, so each group includes both young and old adults. The boxplots show the spread, but they don't show the sample sizes, so they should be read together with the table.
 
 
 ## Total Activity

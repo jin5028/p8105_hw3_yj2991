@@ -464,7 +464,207 @@ after about 8 p.m. toward midnight. Men and women are almost identical
 in the “less than high school” and “high school equivalent” groups. In
 the “more than high school” group, women are somewhat more active than
 men through the daytime and evening. The smooths describe the average
-pattern, and the individual lines show large variation between people,
-with a few very high values that are most visible in the largest group.
-These patterns are descriptive only. The education groups also differ in
-age, as seen earlier, so age may account for some of the differences.
+pattern, and the individual lines show large variation between people.
+It has a few very high values that are most visible in the largest
+group. The education groups also differ in age, so age may account for
+some of the differences.
+
+# Problem 3
+
+## Clean the dataset
+
+``` r
+jan2020  <- read_csv("citibike/Jan_2020_Citi.csv") |>
+  mutate(year = "2020", month = "January")
+july2020 <- read_csv("citibike/July_2020_Citi.csv") |>
+  mutate(year = "2020", month = "July")
+jan2024  <- read_csv("citibike/Jan_2024_Citi.csv") |>
+  mutate(year = "2024", month = "January")
+july2024 <- read_csv("citibike/July_2024_Citi.csv") |>
+  mutate(year = "2024", month = "July")
+citi <- bind_rows(jan2020, july2020, jan2024, july2024) |>
+  clean_names() |>
+  mutate(
+    year  = factor(year),
+    month = factor(month, levels = c("January", "July")),
+    weekdays = factor(weekdays,
+      levels = c("Monday", "Tuesday", "Wednesday", "Thursday",
+                 "Friday", "Saturday", "Sunday")),
+    member_casual = factor(member_casual,
+      levels = c("member", "casual"), labels = c("Member", "Casual")),
+    rideable_type = factor(rideable_type,
+      levels = c("classic_bike", "electric_bike"), labels = c("Classic", "Electric"))
+  )
+
+dim(citi)
+```
+
+    ## [1] 99485     9
+
+``` r
+summary(citi$duration)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   1.002   5.595   9.839  13.930  17.560 238.780
+
+``` r
+colSums(is.na(citi))
+```
+
+    ##            ride_id      rideable_type           weekdays           duration 
+    ##                  0                  0                  0                  0 
+    ## start_station_name   end_station_name      member_casual               year 
+    ##                 43                207                  0                  0 
+    ##              month 
+    ##                  0
+
+``` r
+glimpse(citi)
+```
+
+    ## Rows: 99,485
+    ## Columns: 9
+    ## $ ride_id            <chr> "4BE06CB33B037044", "26886E034974493B", "24DC56060E…
+    ## $ rideable_type      <fct> Classic, Classic, Classic, Classic, Classic, Classi…
+    ## $ weekdays           <fct> Tuesday, Wednesday, Friday, Sunday, Friday, Sunday,…
+    ## $ duration           <dbl> 15.333267, 5.309467, 9.691800, 6.996183, 2.849500, …
+    ## $ start_station_name <chr> "Columbus Ave & W 95 St", "2 Ave & E 96 St", "Colum…
+    ## $ end_station_name   <chr> "E 53 St & Madison Ave", "1 Ave & E 110 St", "Grand…
+    ## $ member_casual      <fct> Member, Member, Member, Member, Member, Member, Mem…
+    ## $ year               <fct> 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 202…
+    ## $ month              <fct> January, January, January, January, January, Januar…
+
+**Summary of the dataset:** The cleaned Citi Bike dataset has 99,485
+rows and 9 variables. It combines four files that each hold a 1% sample
+of rides from January 2020, July 2020, January 2024, and July 2024. Each
+row is one ride, with a unique ride ID, the bike type, the day of the
+week, ride duration in minutes, start and end station names, and whether
+the rider is a member or casual. I added year and month and stored the
+categorical variables as factors, with weekdays ordered Monday to
+Sunday. The only missing values are in station names, 43 for start
+stations and 207 for end stations, which is a very small share of the
+data.
+
+## Total number of rides in each combination of year and month
+
+``` r
+citi |>
+  count(year, month, member_casual) |>
+  pivot_wider(names_from = member_casual, values_from = n) |>
+  mutate(Total = Member + Casual) |>
+  kable(col.names = c("Year", "Month", "Members", "Casual", "Total"),
+        caption = "Number of rides by year, month, and rider type",
+        format.args = list(big.mark = ","))
+```
+
+    ## Warning in attr(x, "align"): 'xfun::attr()' is deprecated.
+    ## Use 'xfun::attr2()' instead.
+    ## See help("Deprecated")
+
+    ## Warning in attr(x, "format"): 'xfun::attr()' is deprecated.
+    ## Use 'xfun::attr2()' instead.
+    ## See help("Deprecated")
+
+| Year | Month   | Members | Casual |  Total |
+|:-----|:--------|--------:|-------:|-------:|
+| 2020 | January |  11,436 |    984 | 12,420 |
+| 2020 | July    |  15,411 |  5,637 | 21,048 |
+| 2024 | January |  16,753 |  2,108 | 18,861 |
+| 2024 | July    |  36,262 | 10,894 | 47,156 |
+
+Number of rides by year, month, and rider type
+
+**Comments:** Members account for most rides in every month, but the
+balance shifts with season. There is a increase from 2024 January to
+2024 July. Casual riders are far more seasonal. Their rides rise about 6
+times from January to July in 2020 and about 5 times in 2024. Member
+rides rise a little bit in 2020, about 2 times in 2024. Total rides also
+grew substantially from 2020 to 2024, by about 52% in January and 124%
+in July. Since each file is a 1% sample, the counts show relative sizes
+and not actual ride totals and it is not a full-year trend.
+
+## 5 favorite starting stations
+
+``` r
+citi |>
+  filter(year == "2024", month == "July", !is.na(start_station_name)) |>
+  count(start_station_name, sort = TRUE) |>
+  slice_head(n = 5) |>
+  kable(col.names = c("Starting station", "Number of rides"),
+        caption = "Five most popular starting stations, July 2024")
+```
+
+    ## Warning in attr(x, "align"): 'xfun::attr()' is deprecated.
+    ## Use 'xfun::attr2()' instead.
+    ## See help("Deprecated")
+
+    ## Warning in attr(x, "format"): 'xfun::attr()' is deprecated.
+    ## Use 'xfun::attr2()' instead.
+    ## See help("Deprecated")
+
+| Starting station         | Number of rides |
+|:-------------------------|----------------:|
+| Pier 61 at Chelsea Piers |             163 |
+| University Pl & E 14 St  |             155 |
+| W 21 St & 6 Ave          |             152 |
+| West St & Chambers St    |             150 |
+| W 31 St & 7 Ave          |             146 |
+
+Five most popular starting stations, July 2024
+
+**Comments:** The most popular starting stations are all in Manhattan:
+Pier 61 at Chelsea Piers (163 rides), University Pl & E 14 St (155), W
+21 St & 6 Ave (152), West St & Chambers St (150), and W 31 St & 7 Ave
+(146). The counts are close together, with only 17 rides separating
+first from fifth.
+
+## Effects of day of the week, month, and year on median ride duration
+
+``` r
+citi |>
+  group_by(year, month, weekdays) |>
+  summarize(median_duration = median(duration), .groups = "drop") |>
+  ggplot(aes(x = weekdays, y = median_duration, color = year, group = year)) +
+  geom_point(size = 2) +
+  geom_line() +
+  facet_wrap(~ month) +
+  labs(title = "Median ride duration by day of week, month, and year",
+       x = "Day of week", y = "Median duration (minutes)", color = "Year") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+![](datascience_hw3_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+**Comments:** First, I found out that July rides are longer than January
+rides in both years, with medians of roughly 13.5 to 16.5 minutes in
+July 2020 versus 8.5 to 10 in January 2020, and 9 to 11 versus 7.4 to
+8.1 in 2024. Second, 2024 rides are shorter than 2020 rides in every
+weekday and both months, and the gap is much larger in July than in
+January. Third, weekends tend to have longer rides than weekdays.
+However, the weekend effect is weak in January 2024, where Sunday is
+actually among the lowest values.
+
+## Impact of month, membership status, and bike type on the distribution of ride duration in 2024
+
+``` r
+citi |>
+  filter(year == "2024") |>
+  ggplot(aes(x = month, y = duration, fill = rideable_type)) +
+  geom_boxplot(alpha = 0.7, outlier.alpha = 0.2) +
+  facet_wrap(~ member_casual) +
+  scale_y_log10() +
+  labs(title = "Ride duration in 2024 by month, membership, and bike type",
+       x = "Month", y = "Duration (minutes, log scale)", fill = "Bike type") +
+  theme_minimal()
+```
+
+![](datascience_hw3_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+**Comments:** Casual riders take longer rides than members in every
+combination, and their durations are more spread out. Bike type matters
+differently by group. Among casual riders, electric bikes have shorter
+median rides than classic bikes in both months. Among members, the two
+bike types are close, and electric is slightly longer in July. July
+rides are longer than January rides for almost all groups.
